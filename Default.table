@@ -1,0 +1,14 @@
+"Title" = "PCI OHCI USB HID Controller";
+"Family" = "System";
+"Version" = "0.1";
+"Location" = "";
+"Instance" = "0";
+"Driver Name" = "OHCIController";
+"Class Names" = "OHCIController";
+"Boot Driver";
+"Bus Type" = "PCI";
+"Interrupt Mode" = "INTx";
+"USB Input" = "Yes";
+"Share IRQ Levels" = "Yes";
+"Share Memory Maps" = "Yes";
+"Auto Detect IDs" = "0x0d9c10de 0x003f106b";

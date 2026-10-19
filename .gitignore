@@ -1,0 +1,17 @@
+# Generated DriverKit bundles and build products
+/OHCI.config/
+obj/
+i386_obj/
+sym/
+*.o
+*.a
+*.d
+Makefile.dependencies
+.lastBuildTime
+/OHCI_reloc.tproj/OHCI_reloc
+
+# Editor and desktop metadata
+*~
+*.swp
+.DS_Store
+Thumbs.db

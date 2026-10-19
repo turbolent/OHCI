@@ -1,0 +1,137 @@
+#import "OHCIUSBKeyboard.h"
+#import "OHCIController.h"
+#import "USBHID.h"
+#import <machkit/NXLock.h>
+#import <driverkit/generalFuncs.h>
+
+@implementation OHCIUSBKeyboard
+
+- initWithController:(OHCIController *)controller
+{
+    if ([super init] == nil)
+        return nil;
+    _controller = controller;
+    _owner = nil;
+    _desiredOwner = nil;
+    _ownerLock = [NXLock new];
+    {
+        unsigned i;
+        for (i = 0; i < sizeof(_previous); i++)
+            _previous[i] = 0;
+    }
+    [self setUnit:0];
+    [self setName:"PCKeyboard0"];
+    [self setDeviceKind:"OHCIUSBKeyboard"];
+    if ([self registerDevice] == nil) {
+        IOLog("OHCI: cannot register PCKeyboard0 (disable PS/2 keyboard)\n");
+        return [self free];
+    }
+    return self;
+}
+
+- free
+{
+    if (_ownerLock)
+        [_ownerLock free];
+    return [super free];
+}
+
+- (int)interfaceId
+{
+    return NX_EVS_DEVICE_INTERFACE_ACE;
+}
+
+- (int)handlerId
+{
+    return 0;
+}
+
+- (void)dispatchKey:(unsigned)key down:(BOOL)down
+{
+    PCKeyboardEvent event;
+    id owner;
+    if (!key)
+        return;
+    [_ownerLock lock];
+    owner = _owner;
+    [_ownerLock unlock];
+    if (owner == nil)
+        return;
+    IOGetTimestamp(&event.timeStamp);
+    event.keyCode = key;
+    event.goingDown = down;
+    [owner dispatchKeyboardEvent:&event];
+}
+
+static void key_change(void *context,unsigned usage,int down)
+{
+    [(OHCIUSBKeyboard *)context dispatchKey:USBHIDUsageToPCKey(usage) down:down ? YES : NO];
+}
+- (void)consumeReport:(const unsigned char *)report length:(unsigned)length
+{
+    USBHIDKeyboardChanges(_previous,report,length,key_change,self);
+}
+
+- (void)setAlphaLockFeedback:(BOOL)locked
+{
+    /* HID output bit 1 is Caps Lock. The controller performs EP0 I/O only
+     * after event dispatch unwinds, avoiding a callback/control deadlock. */
+    [_controller queueKeyboardLEDs:(locked ? 2 : 0)];
+}
+
+- (IOReturn)becomeOwner:client
+{
+    IOReturn result = IO_R_SUCCESS;
+    id oldOwner;
+    [_ownerLock lock];
+    oldOwner = _owner;
+    if (_owner && _owner != client) {
+        if ([_owner respondsTo:@selector(relinquishOwnershipRequest:)])
+            result = [_owner relinquishOwnershipRequest:self];
+        else
+            result = IO_R_BUSY;
+    }
+    if (result == IO_R_SUCCESS)
+        _owner = client;
+    [_ownerLock unlock];
+    if (result == IO_R_SUCCESS && oldOwner != client)
+        IOLog("OHCI: PCKeyboard0 EventSrc owner attached or changed\n");
+    return result;
+}
+
+- (IOReturn)relinquishOwnership:client
+{
+    IOReturn result;
+    id waiter = nil;
+    [_ownerLock lock];
+    if (_owner == client) {
+        _owner = nil;
+        result = IO_R_SUCCESS;
+        if (_desiredOwner != client)
+            waiter = _desiredOwner;
+    } else {
+        result = IO_R_BUSY;
+    }
+    [_ownerLock unlock];
+    if (result == IO_R_SUCCESS)
+        IOLog("OHCI: PCKeyboard0 EventSrc owner released\n");
+    if (waiter && [waiter respondsTo:@selector(canBecomeOwner:)])
+        [waiter canBecomeOwner:self];
+    return result;
+}
+
+- (IOReturn)desireOwnership:client
+{
+    IOReturn result;
+    [_ownerLock lock];
+    if (_desiredOwner && _desiredOwner != client)
+        result = IO_R_BUSY;
+    else {
+        _desiredOwner = client;
+        result = IO_R_SUCCESS;
+    }
+    [_ownerLock unlock];
+    return result;
+}
+
+@end

@@ -1,0 +1,26 @@
+/* Private linkage names: OHCI and XHCI may be loaded together. */
+#ifndef OHCI_USB_NAMES_H
+#define OHCI_USB_NAMES_H
+#define USBCoreControlTransfer OHCIUSBCoreControlTransfer
+#define USBCoreDescriptorIteratorInitialize OHCIUSBCoreDescriptorIteratorInitialize
+#define USBCoreDescriptorNext OHCIUSBCoreDescriptorNext
+#define USBCoreDeviceInitialize OHCIUSBCoreDeviceInitialize
+#define USBCoreEnumerateDevice OHCIUSBCoreEnumerateDevice
+#define USBCoreReadDevice OHCIUSBCoreReadDevice
+#define USBCoreReadConfiguration OHCIUSBCoreReadConfiguration
+#define USBCoreSelectConfiguration OHCIUSBCoreSelectConfiguration
+#define USBCoreEnumerationErrorName OHCIUSBCoreEnumerationErrorName
+#define USBCoreEnumerationStageName OHCIUSBCoreEnumerationStageName
+#define USBCoreGetDescriptor OHCIUSBCoreGetDescriptor
+#define USBCoreReadLE16 OHCIUSBCoreReadLE16
+#define USBCoreSetConfiguration OHCIUSBCoreSetConfiguration
+#define USBCoreSetInterface OHCIUSBCoreSetInterface
+#define USBHIDBootMouseReportChanged OHCIUSBHIDBootMouseReportChanged
+#define USBHIDFindBootInterface OHCIUSBHIDFindBootInterface
+#define USBHIDSetBootProtocol OHCIUSBHIDSetBootProtocol
+#define USBHIDSetIdle OHCIUSBHIDSetIdle
+#define USBHIDSetKeyboardLEDs OHCIUSBHIDSetKeyboardLEDs
+#define USBHIDUsageToPCKey OHCIUSBHIDUsageToPCKey
+#define USBHIDFindBootInterfaces OHCIUSBHIDFindBootInterfaces
+#define USBHIDKeyboardChanges OHCIUSBHIDKeyboardChanges
+#endif
